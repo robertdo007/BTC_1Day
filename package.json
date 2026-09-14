@@ -1,0 +1,16 @@
+{
+  "name": "btc-pattern-bot",
+  "version": "1.0.0",
+  "description": "Telegram bot tìm pattern BTC 1d theo giờ New York",
+  "main": "bot1d.js",
+  "scripts": {
+    "start": "node bot1d.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "telegraf": "^4.16.3",
+    "dotenv": "^16.4.5"
+  }
+}
