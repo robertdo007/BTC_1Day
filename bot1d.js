@@ -48,11 +48,14 @@ bot.on("text", async (ctx) => {
       }
 
       const score = result.stats.countUp - result.stats.countDown;
+      // Tính phần trăm hiệu chia tổng
+      const scorePercent = ((score / result.total) * 100).toFixed(2);
       responseCustom += `*Length ${subPattern.length}:*\n`;
       responseCustom += `Pattern: \`${result.pattern}\`\n`;
       responseCustom += `Xuất hiện: ${result.total} lần\n`;
       responseCustom += `📈 Up: ${result.stats.up}% (${result.stats.countUp}) | Down: ${result.stats.down}% (${result.stats.countDown})\n`;
-      responseCustom += `📊 Score: ${score}\n\n`;
+      // Cập nhật dòng Score hiển thị thêm Hiệu/Tổng và %
+      responseCustom += `📊 Score: ${score}/${result.total} (${scorePercent}%)\n\n`;
     }
 
     // Nếu tin nhắn quá dài so với giới hạn của Telegram (4096 ký tự), cắt nhỏ ra để gửi
