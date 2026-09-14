@@ -24,32 +24,47 @@ bot.on("text", async (ctx) => {
     const patternStr = message.replace("check1d ", "").trim();
     
     // Tách chuỗi thành mảng và lọc các giá trị hợp lệ (chỉ nhận up, down, flat)
-    const patternArray = patternStr.split(/\s+/).filter(p => ["up", "down", "flat"].includes(p));
+    const fullPatternArray = patternStr.split(/\s+/).filter(p => ["up", "down", "flat"].includes(p));
 
-    if (patternArray.length === 0) {
+    if (fullPatternArray.length === 0) {
       return ctx.reply("❌ Cú pháp sai.\n\nHãy nhập ví dụ:\n`check1d up down up up down down up up`", { parse_mode: "Markdown" });
     }
 
-    // Gọi hàm analyze đã có sẵn để lấy số liệu từ file btc_analysis.csv
-    const result = analyzePattern1d(patternArray);
+    let responseCustom = `📊 *KẾT QUẢ PATTERN (TỪ DÀI ĐẾN NGẮN)*\n\n`;
 
-    if (result.error) {
-      return ctx.reply(`❌ Lỗi: ${result.error}`);
+    // Lặp để cắt dần chuỗi từ trái sang phải
+    for (let i = 0; i < fullPatternArray.length; i++) {
+      const subPattern = fullPatternArray.slice(i);
+      const result = analyzePattern1d(subPattern);
+
+      if (result.error) {
+        responseCustom += `❌ Lỗi ở chuỗi \`${subPattern.join(" ")}\`: ${result.error}\n\n`;
+        continue;
+      }
+
+      if (result.total === 0) {
+        responseCustom += `*Length ${subPattern.length}:* \`${subPattern.join(" ")}\`\n❌ KHÔNG tìm thấy trong lịch sử.\n\n`;
+        continue;
+      }
+
+      const score = result.stats.countUp - result.stats.countDown;
+      responseCustom += `*Length ${subPattern.length}:*\n`;
+      responseCustom += `Pattern: \`${result.pattern}\`\n`;
+      responseCustom += `Xuất hiện: ${result.total} lần\n`;
+      responseCustom += `📈 Up: ${result.stats.up}% (${result.stats.countUp}) | Down: ${result.stats.down}% (${result.stats.countDown})\n`;
+      responseCustom += `📊 Score: ${score}\n\n`;
     }
 
-    if (result.total === 0) {
-      return ctx.reply(`❌ Pattern tự nhập (\`${patternArray.join(" ")}\`) KHÔNG tìm thấy trong lịch sử.`, { parse_mode: "Markdown" });
+    // Nếu tin nhắn quá dài so với giới hạn của Telegram (4096 ký tự), cắt nhỏ ra để gửi
+    if (responseCustom.length > 4096) {
+      const chunks = responseCustom.match(/[\s\S]{1,4096}/g);
+      for (const chunk of chunks) {
+        await ctx.replyWithMarkdown(chunk);
+      }
+    } else {
+      await ctx.replyWithMarkdown(responseCustom);
     }
-
-    const score = result.stats.countUp - result.stats.countDown;
-    let responseCustom = `📊 *KẾT QUẢ PATTERN TỰ NHẬP*\n\n`;
-    responseCustom += `*Length ${patternArray.length}:*\n`;
-    responseCustom += `Pattern: \`${result.pattern}\`\n`;
-    responseCustom += `Xuất hiện: ${result.total} lần\n`;
-    responseCustom += `📈 Up: ${result.stats.up}% (${result.stats.countUp}) | Down: ${result.stats.down}% (${result.stats.countDown})\n`;
-    responseCustom += `📊 Score: ${score}\n`;
-
-    return ctx.replyWithMarkdown(responseCustom);
+    return;
   }
 });
 
