@@ -4,6 +4,7 @@
 require("dotenv").config();
 const { Telegraf } = require("telegraf");
 const { findLongestPattern1d } = require("./findLongestPattern1d.js");
+const { analyzePattern1d } = require("./analyzer1d.js");
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
 if (!token) {
